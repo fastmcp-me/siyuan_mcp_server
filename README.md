@@ -17,10 +17,10 @@ A Model Context Protocol (MCP) server for SiYuan Note, providing complete SiYuan
 #### Using npx (Recommended)
 ```bash
 # Run directly
-npx siyuan-mcp@latest
+npx -y siyuan-mcp@latest
 
 # Set environment variables
-SIYUAN_HOST=127.0.0.1 SIYUAN_PORT=6806 SIYUAN_TOKEN=your-token npx siyuan-mcp@latest
+SIYUAN_HOST=127.0.0.1 SIYUAN_PORT=6806 SIYUAN_TOKEN=your-token npx -y siyuan-mcp@latest
 ```
 
 #### Using Docker
@@ -49,7 +49,7 @@ docker run -d \
   "mcpServers": {
     "siyuan-mcp": {
       "command": "npx",
-      "args": ["siyuan-mcp@latest"],
+      "args": ["-y", "siyuan-mcp@latest"],
       "env": {
         "SIYUAN_HOST": "127.0.0.1",
         "SIYUAN_PORT": "6806",
@@ -69,7 +69,7 @@ docker run -d \
   "mcpServers": {
     "siyuan-mcp": {
       "command": "npx",
-      "args": ["siyuan-mcp@latest"],
+      "args": ["-y", "siyuan-mcp@latest"],
       "env": {
         "SIYUAN_HOST": "127.0.0.1",
         "SIYUAN_PORT": "6806",
@@ -134,6 +134,9 @@ If you use Docker to run the service, you can configure the client to connect to
 2. Go to `Settings` → `About` → `API Token`
 3. Click `Generate Token` or copy existing token
 4. Ensure the token format is correct (usually a string of alphanumeric characters)
+
+#### Q: Why use `-y` parameter with npx?
+**A:** The `-y` parameter automatically confirms package installation without prompting for user input, which is essential for MCP client configurations where interactive prompts would cause connection failures.
 
 ### 🎯 Features
 
@@ -471,10 +474,10 @@ MIT License
 #### 使用 npx（推荐）
 ```bash
 # 直接运行
-npx siyuan-mcp@latest
+npx -y siyuan-mcp@latest
 
 # 设置环境变量
-SIYUAN_HOST=127.0.0.1 SIYUAN_PORT=6806 SIYUAN_TOKEN=your-token npx siyuan-mcp@latest
+SIYUAN_HOST=127.0.0.1 SIYUAN_PORT=6806 SIYUAN_TOKEN=your-token npx -y siyuan-mcp@latest
 ```
 
 #### 使用 Docker
@@ -503,7 +506,7 @@ docker run -d \
   "mcpServers": {
     "siyuan-mcp": {
       "command": "npx",
-      "args": ["siyuan-mcp@latest"],
+      "args": ["-y", "siyuan-mcp@latest"],
       "env": {
         "SIYUAN_HOST": "127.0.0.1",
         "SIYUAN_PORT": "6806",
@@ -523,7 +526,7 @@ docker run -d \
   "mcpServers": {
     "siyuan-mcp": {
       "command": "npx",
-      "args": ["siyuan-mcp@latest"],
+      "args": ["-y", "siyuan-mcp@latest"],
       "env": {
         "SIYUAN_HOST": "127.0.0.1",
         "SIYUAN_PORT": "6806",
@@ -588,6 +591,9 @@ docker run -d \
 2. 进入 `设置` → `关于` → `API 令牌`
 3. 点击 `生成令牌` 或复制现有令牌
 4. 确保令牌格式正确（通常是一串字母数字组合）
+
+#### Q: 为什么使用 `-y` 参数？
+**A:** `-y` 参数可以自动确认包安装，无需用户交互确认，这对于 MCP 客户端配置非常重要，因为交互式提示会导致连接失败。
 
 
 
