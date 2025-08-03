@@ -2,13 +2,15 @@
 
 <div align="center">
 
-[English](#english) | [中文](#chinese)
+[English](#english-version) | [中文](#中文版本)
 
 </div>
 
 ---
 
-## 中文版本 {#chinese}
+## 中文版本
+
+
 
 这是一个基于 [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) 的思源笔记服务器，提供了完整的思源笔记 API 功能。
 
@@ -234,7 +236,7 @@ npm run dev
 
 ---
 
-## English Version {#english}
+## English Version
 
 This is a SiYuan Note MCP server based on [Model Context Protocol (MCP)](https://modelcontextprotocol.io/), providing complete SiYuan Note API functionality.
 
