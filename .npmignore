@@ -1,0 +1,55 @@
+# 源代码
+src/
+*.ts
+
+# 开发文件
+.env
+.env.example
+.env.local
+.env.*.local
+
+# 测试文件
+test-docker.js
+test/
+
+# 构建文件
+dist/
+!dist/index.js
+
+# 文档
+docs/
+*.md
+!README.md
+
+# 配置文件
+tsconfig.json
+.eslintrc*
+.prettierrc*
+.editorconfig
+
+# 版本控制
+.git/
+.gitignore
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 日志
+logs/
+*.log
+
+# 临时文件
+*.tmp
+*.temp
+
+# Docker 文件
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# 其他
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log* 

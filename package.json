@@ -2,11 +2,16 @@
   "name": "siyuan-mcp",
   "version": "1.0.0",
   "description": "Model Context Protocol (MCP) server for SiYuan Note, providing complete SiYuan API functionality",
-  "main": "index.js",
+  "main": "dist/index.js",
   "type": "module",
   "bin": {
     "siyuan-mcp": "./dist/index.js"
   },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
@@ -14,7 +19,11 @@
     "test": "node test-docker.js",
     "clean": "rm -rf dist",
     "rebuild": "npm run clean && npm run build",
-    "test:docker": "node test-docker.js"
+    "test:docker": "node test-docker.js",
+    "prepublishOnly": "npm run build",
+    "publish:npm": "npm publish",
+    "publish:docker": "docker build -t xgq18237/siyuan-mcp:latest . && docker push xgq18237/siyuan-mcp:latest",
+    "publish:both": "npm run publish:npm && npm run publish:docker"
   },
   "keywords": [
     "siyuan",
@@ -22,7 +31,8 @@
     "model-context-protocol",
     "note-taking",
     "api",
-    "typescript"
+    "typescript",
+    "cli"
   ],
   "author": "xgq18237",
   "license": "MIT",
@@ -44,5 +54,8 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

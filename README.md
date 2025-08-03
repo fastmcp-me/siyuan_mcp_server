@@ -1070,6 +1070,37 @@ SELECT * FROM blocks WHERE created >= '2025-01-01' AND created <= '2025-01-31'
 - **包管理**: npm
 - **容器化**: Docker, Docker Compose
 
+### 🚀 快速使用
+
+#### 使用 npx（推荐）
+```bash
+# 直接运行
+npx siyuan-mcp
+
+# 设置环境变量
+SIYUAN_HOST=127.0.0.1 SIYUAN_PORT=6806 SIYUAN_TOKEN=your-token npx siyuan-mcp
+```
+
+#### 使用 Docker
+```bash
+# 拉取镜像
+docker pull xgq18237/siyuan-mcp:latest
+
+# 运行容器
+docker run -d \
+  -e SIYUAN_HOST=127.0.0.1 \
+  -e SIYUAN_PORT=6806 \
+  -e SIYUAN_TOKEN=your-token \
+  --name siyuan-mcp-server \
+  xgq18237/siyuan-mcp:latest
+```
+
+#### 全局安装
+```bash
+npm install -g siyuan-mcp
+siyuan-mcp
+```
+
 
 
 ### 🛠️ 开发
