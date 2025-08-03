@@ -1,10 +1,14 @@
 # 思源笔记 MCP 服务器 / SiYuan MCP Server
 
-[English](#english) | [中文](#chinese)
+<div align="center">
+
+[English](#english-version) | [中文](#chinese-version)
+
+</div>
 
 ---
 
-## 中文版本
+## 中文版本 {#chinese-version}
 
 这是一个基于 [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) 的思源笔记服务器，提供了完整的思源笔记 API 功能。
 
@@ -222,11 +226,15 @@ npm run build
 
 # 开发模式
 npm run dev
+
+---
+
+**[⬆ 返回顶部](#思源笔记-mcp-服务器--siyuan-mcp-server)**
 ```
 
 ---
 
-## English Version
+## English Version {#english-version}
 
 This is a SiYuan Note MCP server based on [Model Context Protocol (MCP)](https://modelcontextprotocol.io/), providing complete SiYuan Note API functionality.
 
@@ -448,4 +456,8 @@ npm run dev
 
 ### 📄 License
 
-MIT License 
+MIT License
+
+---
+
+**[⬆ 返回顶部](#思源笔记-mcp-服务器--siyuan-mcp-server)** 
