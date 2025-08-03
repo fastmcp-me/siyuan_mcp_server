@@ -1,45 +1,107 @@
 #!/usr/bin/env node
 
-// 简单的 MCP 服务器测试脚本
-import { spawn } from 'child_process';
+/**
+ * 测试脚本 - 验证思源笔记 MCP 服务器功能
+ * Test script for SiYuan MCP Server
+ */
 
-console.log('🧪 测试 Docker 容器中的 MCP 服务器...');
+const { spawn } = require('child_process');
+const readline = require('readline');
 
-// 测试环境变量
-const env = {
-  SIYUAN_HOST: '127.0.0.1',
-  SIYUAN_PORT: '6806',
-  SIYUAN_TOKEN: 'test-token',
-  ...process.env
-};
+console.log('🧪 思源笔记 MCP 服务器测试');
+console.log('SiYuan MCP Server Test');
+console.log('========================');
 
-console.log('📋 环境变量配置:');
-console.log(`  SIYUAN_HOST: ${env.SIYUAN_HOST}`);
-console.log(`  SIYUAN_PORT: ${env.SIYUAN_PORT}`);
-console.log(`  SIYUAN_TOKEN: ${env.SIYUAN_TOKEN ? '已设置' : '未设置'}`);
+// 检查环境变量
+const requiredEnvVars = ['SIYUAN_HOST', 'SIYUAN_PORT', 'SIYUAN_TOKEN'];
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
-// 启动 MCP 服务器
-const server = spawn('node', ['dist/index.js'], {
-  env,
-  stdio: ['pipe', 'pipe', 'pipe']
+if (missingVars.length > 0) {
+  console.log('❌ 缺少必需的环境变量:');
+  console.log('Missing required environment variables:');
+  missingVars.forEach(varName => console.log(`  - ${varName}`));
+  console.log('\n请设置环境变量或创建 .env 文件');
+  console.log('Please set environment variables or create .env file');
+  process.exit(1);
+}
+
+console.log('✅ 环境变量检查通过');
+console.log('Environment variables check passed');
+
+// 测试 Docker 构建
+console.log('\n🔨 测试 Docker 构建...');
+console.log('Testing Docker build...');
+
+const dockerBuild = spawn('docker', ['build', '-t', 'siyuan-mcp-test', '.']);
+
+dockerBuild.stdout.on('data', (data) => {
+  console.log(`Docker build output: ${data}`);
 });
 
-console.log('🚀 启动 MCP 服务器...');
-
-server.stdout.on('data', (data) => {
-  console.log('📤 服务器输出:', data.toString());
+dockerBuild.stderr.on('data', (data) => {
+  console.log(`Docker build error: ${data}`);
 });
 
-server.stderr.on('data', (data) => {
-  console.log('⚠️  服务器错误:', data.toString());
+dockerBuild.on('close', (code) => {
+  if (code === 0) {
+    console.log('✅ Docker 构建成功');
+    console.log('Docker build successful');
+    
+    // 测试容器运行
+    console.log('\n🐳 测试容器运行...');
+    console.log('Testing container run...');
+    
+    const dockerRun = spawn('docker', [
+      'run', '--rm',
+      '-e', `SIYUAN_HOST=${process.env.SIYUAN_HOST}`,
+      '-e', `SIYUAN_PORT=${process.env.SIYUAN_PORT}`,
+      '-e', `SIYUAN_TOKEN=${process.env.SIYUAN_TOKEN}`,
+      'siyuan-mcp-test'
+    ]);
+    
+    // 设置超时
+    const timeout = setTimeout(() => {
+      console.log('⏰ 测试超时，停止容器');
+      console.log('Test timeout, stopping container');
+      dockerRun.kill();
+    }, 10000);
+    
+    dockerRun.stdout.on('data', (data) => {
+      console.log(`Container output: ${data}`);
+    });
+    
+    dockerRun.stderr.on('data', (data) => {
+      console.log(`Container error: ${data}`);
+    });
+    
+    dockerRun.on('close', (code) => {
+      clearTimeout(timeout);
+      if (code === 0) {
+        console.log('✅ 容器运行测试成功');
+        console.log('Container run test successful');
+      } else {
+        console.log(`❌ 容器运行测试失败，退出码: ${code}`);
+        console.log(`Container run test failed, exit code: ${code}`);
+      }
+      
+      // 清理测试镜像
+      console.log('\n🧹 清理测试镜像...');
+      console.log('Cleaning up test image...');
+      spawn('docker', ['rmi', 'siyuan-mcp-test']).on('close', () => {
+        console.log('✅ 测试完成');
+        console.log('Test completed');
+      });
+    });
+    
+  } else {
+    console.log(`❌ Docker 构建失败，退出码: ${code}`);
+    console.log(`Docker build failed, exit code: ${code}`);
+  }
 });
 
-server.on('close', (code) => {
-  console.log(`✅ 服务器已关闭，退出码: ${code}`);
-});
-
-// 5秒后关闭服务器
-setTimeout(() => {
-  console.log('⏰ 测试完成，关闭服务器...');
-  server.kill();
-}, 5000); 
+// 处理中断信号
+process.on('SIGINT', () => {
+  console.log('\n🛑 测试被中断');
+  console.log('Test interrupted');
+  process.exit(0);
+}); 

@@ -53,7 +53,7 @@ async function api(path: string, body?: any) {
 const server = new Server(
   {
     name: "siyuan-mcp",
-    version: "0.1.0",
+    version: "1.0.0",
   },
   { capabilities: { tools: {}, resources: {} } }
 );
@@ -134,6 +134,18 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         required: ["notebook"],
       },
     },
+    {
+      name: "set_notebook_conf",
+      description: "保存笔记本配置",
+      inputSchema: {
+        type: "object",
+        properties: {
+          notebook: { type: "string", description: "笔记本 ID" },
+          conf: { type: "object", description: "笔记本配置" },
+        },
+        required: ["notebook", "conf"],
+      },
+    },
     
     // 文档管理
     {
@@ -163,6 +175,18 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
     },
     {
+      name: "rename_doc_by_id",
+      description: "根据ID重命名文档",
+      inputSchema: {
+        type: "object",
+        properties: {
+          id: { type: "string", description: "文档 ID" },
+          title: { type: "string", description: "新标题" },
+        },
+        required: ["id", "title"],
+      },
+    },
+    {
       name: "remove_doc",
       description: "删除文档",
       inputSchema: {
@@ -172,6 +196,17 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           path: { type: "string", description: "文档路径" },
         },
         required: ["notebook", "path"],
+      },
+    },
+    {
+      name: "remove_doc_by_id",
+      description: "根据ID删除文档",
+      inputSchema: {
+        type: "object",
+        properties: {
+          id: { type: "string", description: "文档 ID" },
+        },
+        required: ["id"],
       },
     },
     {
@@ -188,16 +223,18 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
     },
     {
-      name: "get_doc_tree",
-      description: "获取文档树结构",
+      name: "move_docs_by_id",
+      description: "根据ID移动文档",
       inputSchema: {
         type: "object",
         properties: {
-          notebook: { type: "string", description: "笔记本 ID（可选，不提供则使用当前笔记本）" },
+          fromIDs: { type: "array", items: { type: "string" }, description: "源文档ID列表" },
+          toID: { type: "string", description: "目标父文档ID" },
         },
-        required: [],
+        required: ["fromIDs", "toID"],
       },
     },
+
     {
       name: "get_hpath_by_path",
       description: "根据路径获取人类可读路径",
@@ -221,6 +258,29 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         required: ["id"],
       },
     },
+    {
+      name: "get_path_by_id",
+      description: "根据 ID 获取存储路径",
+      inputSchema: {
+        type: "object",
+        properties: {
+          id: { type: "string", description: "块 ID" },
+        },
+        required: ["id"],
+      },
+    },
+    {
+      name: "get_ids_by_hpath",
+      description: "根据人类可读路径获取 IDs",
+      inputSchema: {
+        type: "object",
+        properties: {
+          path: { type: "string", description: "人类可读路径" },
+          notebook: { type: "string", description: "笔记本 ID" },
+        },
+        required: ["path", "notebook"],
+      },
+    },
     
     // 块操作
     {
@@ -236,6 +296,32 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           parentID: { type: "string", description: "父块 ID（可选）" },
         },
         required: ["data"],
+      },
+    },
+    {
+      name: "prepend_block",
+      description: "插入前置子块",
+      inputSchema: {
+        type: "object",
+        properties: {
+          dataType: { type: "string", description: "数据类型 (markdown 或 dom)", default: "markdown" },
+          data: { type: "string", description: "数据内容" },
+          parentID: { type: "string", description: "父块 ID" },
+        },
+        required: ["data", "parentID"],
+      },
+    },
+    {
+      name: "append_block",
+      description: "插入后置子块",
+      inputSchema: {
+        type: "object",
+        properties: {
+          dataType: { type: "string", description: "数据类型 (markdown 或 dom)", default: "markdown" },
+          data: { type: "string", description: "数据内容" },
+          parentID: { type: "string", description: "父块 ID" },
+        },
+        required: ["data", "parentID"],
       },
     },
     {
@@ -295,6 +381,41 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           id: { type: "string", description: "父块 ID" },
         },
         required: ["id"],
+      },
+    },
+    {
+      name: "fold_block",
+      description: "折叠块",
+      inputSchema: {
+        type: "object",
+        properties: {
+          id: { type: "string", description: "块 ID" },
+        },
+        required: ["id"],
+      },
+    },
+    {
+      name: "unfold_block",
+      description: "展开块",
+      inputSchema: {
+        type: "object",
+        properties: {
+          id: { type: "string", description: "块 ID" },
+        },
+        required: ["id"],
+      },
+    },
+    {
+      name: "transfer_block_ref",
+      description: "转移块引用",
+      inputSchema: {
+        type: "object",
+        properties: {
+          fromID: { type: "string", description: "定义块 ID" },
+          toID: { type: "string", description: "目标块 ID" },
+          refIDs: { type: "array", items: { type: "string" }, description: "引用块 ID 列表（可选）" },
+        },
+        required: ["fromID", "toID"],
       },
     },
     
@@ -387,6 +508,20 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         required: ["path"],
       },
     },
+    {
+      name: "put_file",
+      description: "写入文件",
+      inputSchema: {
+        type: "object",
+        properties: {
+          path: { type: "string", description: "文件路径" },
+          isDir: { type: "boolean", description: "是否为创建文件夹", default: false },
+          modTime: { type: "number", description: "最近访问和修改时间（Unix time）" },
+          file: { type: "string", description: "文件内容" },
+        },
+        required: ["path"],
+      },
+    },
     
     // 导出功能
     {
@@ -398,6 +533,18 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           id: { type: "string", description: "要导出的文档块 ID" },
         },
         required: ["id"],
+      },
+    },
+    {
+      name: "export_resources",
+      description: "导出文件与目录",
+      inputSchema: {
+        type: "object",
+        properties: {
+          paths: { type: "array", items: { type: "string" }, description: "要导出的文件或文件夹路径列表" },
+          name: { type: "string", description: "导出的文件名（可选）" },
+        },
+        required: ["paths"],
       },
     },
     
@@ -428,11 +575,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     },
     
     // 系统信息
-    {
-      name: "get_system_info",
-      description: "获取系统信息",
-      inputSchema: { type: "object", properties: {} },
-    },
+
     {
       name: "get_version",
       description: "获取思源笔记版本",
@@ -457,6 +600,59 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       name: "get_workspace_info",
       description: "获取工作空间和连接信息",
       inputSchema: { type: "object", properties: {} },
+    },
+    
+    // 模板功能
+    {
+      name: "render_template",
+      description: "渲染模板",
+      inputSchema: {
+        type: "object",
+        properties: {
+          id: { type: "string", description: "调用渲染所在的文档 ID" },
+          path: { type: "string", description: "模板文件绝对路径" },
+        },
+        required: ["id", "path"],
+      },
+    },
+    {
+      name: "render_sprig",
+      description: "渲染 Sprig",
+      inputSchema: {
+        type: "object",
+        properties: {
+          template: { type: "string", description: "模板内容" },
+        },
+        required: ["template"],
+      },
+    },
+    
+    // 转换功能
+    {
+      name: "pandoc_convert",
+      description: "Pandoc 转换",
+      inputSchema: {
+        type: "object",
+        properties: {
+          dir: { type: "string", description: "工作目录" },
+          args: { type: "array", items: { type: "string" }, description: "Pandoc 命令行参数" },
+        },
+        required: ["dir", "args"],
+      },
+    },
+    
+    // 资源文件
+    {
+      name: "upload_asset",
+      description: "上传资源文件",
+      inputSchema: {
+        type: "object",
+        properties: {
+          assetsDirPath: { type: "string", description: "资源文件存放的文件夹路径" },
+          files: { type: "array", items: { type: "string" }, description: "上传的文件列表" },
+        },
+        required: ["assetsDirPath", "files"],
+      },
     },
   ],
 }));
@@ -513,12 +709,6 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
         }
       }
       
-      case "get_notebook": {
-        if (!args) throw new Error("Arguments are required for get_notebook tool");
-        const result = await api("/api/notebook/getNotebook", { notebook: args.notebook });
-        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-      }
-      
       case "create_notebook": {
         if (!args) throw new Error("Arguments are required for create_notebook tool");
         const result = await api("/api/notebook/createNotebook", { name: args.name });
@@ -545,17 +735,23 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
         return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
       }
       
+      case "set_notebook_conf": {
+        if (!args) throw new Error("Arguments are required for set_notebook_conf tool");
+        const result = await api("/api/notebook/setNotebookConf", { 
+          notebook: args.notebook, 
+          conf: args.conf 
+        });
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      }
+      
       // 文档管理
     case "create_doc": {
         if (!args) throw new Error("Arguments are required for create_doc tool");
         
         let notebookId = args.notebook;
         if (!notebookId) {
-          const currentNotebook = await api("/api/notebook/getNotebook");
-          notebookId = currentNotebook.data?.id;
-          if (!notebookId) {
-            throw new Error("无法获取笔记本 ID，请手动指定 notebook 参数");
-          }
+          // 获取当前笔记本 - 这个接口不存在，需要移除
+          throw new Error("请手动指定 notebook 参数");
         }
         
         const result = await api("/api/filetree/createDocWithMd", {
@@ -585,6 +781,19 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
         }
       }
       
+      case "rename_doc_by_id": {
+        if (!args) throw new Error("Arguments are required for rename_doc_by_id tool");
+        const result = await api("/api/filetree/renameDocByID", {
+          id: args.id,
+          title: args.title,
+        });
+        if (result.code === 0) {
+          return { content: [{ type: "text", text: `✅ 文档重命名成功: ${args.title}` }] };
+        } else {
+          return { content: [{ type: "text", text: `❌ 重命名失败: ${result.msg}` }] };
+        }
+      }
+      
       case "remove_doc": {
         if (!args) throw new Error("Arguments are required for remove_doc tool");
         const result = await api("/api/filetree/removeDoc", {
@@ -593,6 +802,16 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
         });
         if (result.code === 0) {
           return { content: [{ type: "text", text: `✅ 文档删除成功: ${args.path}` }] };
+        } else {
+          return { content: [{ type: "text", text: `❌ 删除失败: ${result.msg}` }] };
+        }
+      }
+      
+      case "remove_doc_by_id": {
+        if (!args) throw new Error("Arguments are required for remove_doc_by_id tool");
+        const result = await api("/api/filetree/removeDocByID", { id: args.id });
+        if (result.code === 0) {
+          return { content: [{ type: "text", text: `✅ 文档删除成功: ${args.id}` }] };
         } else {
           return { content: [{ type: "text", text: `❌ 删除失败: ${result.msg}` }] };
         }
@@ -612,38 +831,20 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
         }
       }
       
-      case "get_doc": {
-        if (!args) throw new Error("Arguments are required for get_doc tool");
-        const result = await api("/api/filetree/getDoc", { id: args.id });
-        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-      }
-      
-      case "update_doc": {
-        if (!args) throw new Error("Arguments are required for update_doc tool");
-        const result = await api("/api/filetree/saveDoc", {
-          id: args.id,
-          markdown: args.markdown,
+      case "move_docs_by_id": {
+        if (!args) throw new Error("Arguments are required for move_docs_by_id tool");
+        const result = await api("/api/filetree/moveDocsByID", {
+          fromIDs: args.fromIDs,
+          toID: args.toID,
         });
         if (result.code === 0) {
-          return { content: [{ type: "text", text: `✅ 文档更新成功` }] };
+          return { content: [{ type: "text", text: `✅ 文档移动成功` }] };
         } else {
-          return { content: [{ type: "text", text: `❌ 更新失败: ${result.msg}` }] };
+          return { content: [{ type: "text", text: `❌ 移动失败: ${result.msg}` }] };
         }
       }
       
-      case "get_doc_tree": {
-        let notebookId = args?.notebook;
-        if (!notebookId) {
-          const currentNotebook = await api("/api/notebook/getNotebook");
-          notebookId = currentNotebook.data?.id;
-          if (!notebookId) {
-            throw new Error("无法获取笔记本 ID");
-          }
-        }
-        
-        const result = await api("/api/filetree/getDocTree", { notebook: notebookId });
-        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-      }
+
       
       case "get_hpath_by_path": {
         if (!args) throw new Error("Arguments are required for get_hpath_by_path tool");
@@ -660,6 +861,21 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
         return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
       }
       
+      case "get_path_by_id": {
+        if (!args) throw new Error("Arguments are required for get_path_by_id tool");
+        const result = await api("/api/filetree/getPathByID", { id: args.id });
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      }
+      
+      case "get_ids_by_hpath": {
+        if (!args) throw new Error("Arguments are required for get_ids_by_hpath tool");
+        const result = await api("/api/filetree/getIDsByHPath", {
+          path: args.path,
+          notebook: args.notebook,
+        });
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      }
+      
       // 块操作
       case "insert_block": {
         if (!args) throw new Error("Arguments are required for insert_block tool");
@@ -672,6 +888,26 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
         if (args.parentID) params.parentID = args.parentID;
         
         const result = await api("/api/block/insertBlock", params);
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      }
+      
+      case "prepend_block": {
+        if (!args) throw new Error("Arguments are required for prepend_block tool");
+        const result = await api("/api/block/prependBlock", {
+          dataType: args.dataType || "markdown",
+          data: args.data,
+          parentID: args.parentID,
+        });
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      }
+      
+      case "append_block": {
+        if (!args) throw new Error("Arguments are required for append_block tool");
+        const result = await api("/api/block/appendBlock", {
+          dataType: args.dataType || "markdown",
+          data: args.data,
+          parentID: args.parentID,
+        });
         return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
       }
       
@@ -710,6 +946,30 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
       case "get_child_blocks": {
         if (!args) throw new Error("Arguments are required for get_child_blocks tool");
         const result = await api("/api/block/getChildBlocks", { id: args.id });
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      }
+      
+      case "fold_block": {
+        if (!args) throw new Error("Arguments are required for fold_block tool");
+        const result = await api("/api/block/foldBlock", { id: args.id });
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      }
+      
+      case "unfold_block": {
+        if (!args) throw new Error("Arguments are required for unfold_block tool");
+        const result = await api("/api/block/unfoldBlock", { id: args.id });
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      }
+      
+      case "transfer_block_ref": {
+        if (!args) throw new Error("Arguments are required for transfer_block_ref tool");
+        const params: any = {
+          fromID: args.fromID,
+          toID: args.toID,
+        };
+        if (args.refIDs) params.refIDs = args.refIDs;
+        
+        const result = await api("/api/block/transferBlockRef", params);
         return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
       }
       
@@ -769,10 +1029,30 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
         return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
       }
       
+      case "put_file": {
+        if (!args) throw new Error("Arguments are required for put_file tool");
+        const params: any = { path: args.path };
+        if (args.isDir !== undefined) params.isDir = args.isDir;
+        if (args.modTime) params.modTime = args.modTime;
+        if (args.file) params.file = args.file;
+        
+        const result = await api("/api/file/putFile", params);
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      }
+      
       // 导出功能
       case "export_md_content": {
         if (!args) throw new Error("Arguments are required for export_md_content tool");
         const result = await api("/api/export/exportMdContent", { id: args.id });
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      }
+      
+      case "export_resources": {
+        if (!args) throw new Error("Arguments are required for export_resources tool");
+        const params: any = { paths: args.paths };
+        if (args.name) params.name = args.name;
+        
+        const result = await api("/api/export/exportResources", params);
         return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
       }
       
@@ -796,10 +1076,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
       }
       
       // 系统信息
-      case "get_system_info": {
-        const result = await api("/api/system/info");
-        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-      }
+
       
       case "get_version": {
         const result = await api("/api/system/version");
@@ -837,11 +1114,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
             status.errors.push(`版本检查失败: ${error instanceof Error ? error.message : String(error)}`);
           }
           
-          try {
-            status.systemInfo = await api("/api/system/info");
-          } catch (error) {
-            status.errors.push(`系统信息检查失败: ${error instanceof Error ? error.message : String(error)}`);
-          }
+
           
           try {
             status.notebooks = await api("/api/notebook/lsNotebooks");
@@ -860,7 +1133,6 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 
 ✅ 正常工作的 API:
 ${status.version ? '- 系统版本 API' : ''}
-${status.systemInfo ? '- 系统信息 API' : ''}
 ${status.sqlQuery ? '- SQL 查询 API' : ''}
 
 ❌ 有问题的 API:
@@ -879,27 +1151,27 @@ ${status.errors.length > 0 ? status.errors.map(e => `- ${e}`).join('\n') : ''}
           return { content: [{ type: "text", text: summary }] };
         }
         
-        case "get_workspace_info": {
-          const info = {
-            connection: {
-              host: SY_HOST,
-              port: SY_PORT,
-              baseUrl: base,
-              hasToken: !!SY_TOKEN
-            },
-            workspace: {
-              path: "未设置",
-              description: "工作空间路径已移除，使用相对路径"
-            },
-            environment: {
-              SIYUAN_HOST: SY_HOST,
-              SIYUAN_PORT: SY_PORT,
-              SIYUAN_TOKEN: SY_TOKEN ? "已设置" : "未设置",
-              SIYUAN_WORKSPACE: "已移除"
-            }
-          };
-          
-          const summary = `
+              case "get_workspace_info": {
+        const info = {
+          connection: {
+            host: SY_HOST,
+            port: SY_PORT,
+            baseUrl: base,
+            hasToken: !!SY_TOKEN
+          },
+          workspace: {
+            path: "未设置",
+            description: "工作空间路径已移除，使用相对路径"
+          },
+          environment: {
+            SIYUAN_HOST: SY_HOST,
+            SIYUAN_PORT: SY_PORT,
+            SIYUAN_TOKEN: SY_TOKEN ? "已设置" : "未设置",
+            SIYUAN_WORKSPACE: "已移除"
+          }
+        };
+        
+        const summary = `
 === 工作空间和连接信息 ===
 
 🔗 连接信息:
@@ -922,10 +1194,48 @@ ${Object.entries(info.environment).map(([key, value]) => `- ${key}: ${value}`).j
 4. 确保 SIYUAN_TOKEN 已正确设置
 
 详细配置: ${JSON.stringify(info, null, 2)}
-          `;
-          
-          return { content: [{ type: "text", text: summary }] };
-        }
+        `;
+        
+        return { content: [{ type: "text", text: summary }] };
+      }
+      
+      // 模板功能
+      case "render_template": {
+        if (!args) throw new Error("Arguments are required for render_template tool");
+        const result = await api("/api/template/render", {
+          id: args.id,
+          path: args.path,
+        });
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      }
+      
+      case "render_sprig": {
+        if (!args) throw new Error("Arguments are required for render_sprig tool");
+        const result = await api("/api/template/renderSprig", {
+          template: args.template,
+        });
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      }
+      
+      // 转换功能
+      case "pandoc_convert": {
+        if (!args) throw new Error("Arguments are required for pandoc_convert tool");
+        const result = await api("/api/convert/pandoc", {
+          dir: args.dir,
+          args: args.args,
+        });
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      }
+      
+      // 资源文件
+      case "upload_asset": {
+        if (!args) throw new Error("Arguments are required for upload_asset tool");
+        const result = await api("/api/asset/upload", {
+          assetsDirPath: args.assetsDirPath,
+          files: args.files,
+        });
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      }
       
       default:
         throw new Error(`Unknown tool: ${name}`);
@@ -954,16 +1264,8 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => ({
       name: "所有笔记本列表",
       mimeType: "application/json",
     },
-    {
-      uri: "siyuan://system-info",
-      name: "系统信息",
-      mimeType: "application/json",
-    },
-    {
-      uri: "siyuan://doc-tree",
-      name: "当前笔记本文档树",
-      mimeType: "application/json",
-    },
+
+
   ],
 }));
 
@@ -981,29 +1283,9 @@ server.setRequestHandler(ReadResourceRequestSchema, async ({ params: { uri } }) 
         return { contents: [{ uri, mimeType: "application/json", text: JSON.stringify(res, null, 2) }] };
       }
       
-      case "siyuan://system-info": {
-        const res = await api("/api/system/info");
-        return { contents: [{ uri, mimeType: "application/json", text: JSON.stringify(res, null, 2) }] };
-      }
+
       
-      case "siyuan://doc-tree": {
-        // 获取当前笔记本
-        const currentNotebook = await api("/api/notebook/getNotebook");
-        const notebookId = currentNotebook.data?.id;
-        
-        if (!notebookId) {
-          return { 
-            contents: [{ 
-              uri, 
-              mimeType: "text/plain", 
-              text: "无法获取当前笔记本信息" 
-            }] 
-          };
-        }
-        
-        const res = await api("/api/filetree/getDocTree", { notebook: notebookId });
-        return { contents: [{ uri, mimeType: "application/json", text: JSON.stringify(res, null, 2) }] };
-      }
+
       
       default:
         throw new Error(`Unknown resource: ${uri}`);
