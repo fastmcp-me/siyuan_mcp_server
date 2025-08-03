@@ -32,6 +32,33 @@ npm install
 npm run build
 ```
 
+#### 4. Docker 部署方式
+
+1. 构建镜像
+```bash
+docker build -t siyuan-mcp-server .
+```
+
+2. 运行容器（推荐使用环境变量传递思源参数）
+```bash
+docker run -d \
+  -e SIYUAN_HOST=127.0.0.1 \
+  -e SIYUAN_PORT=6806 \
+  -e SIYUAN_TOKEN=你的思源API令牌 \
+  --name siyuan-mcp-server \
+  siyuan-mcp-server
+```
+
+3. 查看日志
+```bash
+docker logs -f siyuan-mcp-server
+```
+
+4. 停止并删除容器
+```bash
+docker stop siyuan-mcp-server && docker rm siyuan-mcp-server
+```
+
 #### 4. 获取思源笔记 API 令牌
 
 1. **打开思源笔记**
