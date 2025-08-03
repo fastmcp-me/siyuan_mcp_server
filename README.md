@@ -313,7 +313,62 @@ npm install
 npm run build
 ```
 
-#### 4. Get SiYuan Note API Token
+#### 4. Docker Deployment
+
+1. Build the image
+```bash
+docker build -t siyuan-mcp-server .
+```
+
+2. Run the container (recommended to pass SiYuan parameters via environment variables)
+```bash
+docker run -d \
+  -e SIYUAN_HOST=127.0.0.1 \
+  -e SIYUAN_PORT=6806 \
+  -e SIYUAN_TOKEN=your-siyuan-api-token \
+  --name siyuan-mcp-server \
+  siyuan-mcp-server
+```
+
+3. View logs
+```bash
+docker logs -f siyuan-mcp-server
+```
+
+4. Stop and remove the container
+```bash
+docker stop siyuan-mcp-server && docker rm siyuan-mcp-server
+```
+
+##### Docker Compose Method (Recommended)
+
+1. Configure environment variables
+```bash
+# Copy environment variable template
+cp env.example .env
+
+# Edit .env file with your SiYuan configuration
+# SIYUAN_HOST=127.0.0.1
+# SIYUAN_PORT=6806
+# SIYUAN_TOKEN=your-siyuan-api-token
+```
+
+2. Start the service
+```bash
+docker-compose up -d
+```
+
+3. View logs
+```bash
+docker-compose logs -f
+```
+
+4. Stop the service
+```bash
+docker-compose down
+```
+
+#### 5. Get SiYuan Note API Token
 
 1. **Open SiYuan Note**
 2. **Access Settings**:
@@ -326,7 +381,7 @@ npm run build
    - Click `Generate Token` or copy the existing token
    - Save the token (you'll need it later)
 
-#### 5. Configure MCP Client
+#### 6. Configure MCP Client
 
 ##### Cursor Configuration
 
@@ -384,7 +439,7 @@ If you're using other MCP-compatible clients, the configuration is similar:
 
 **Note**: Replace `path/to/siyuan_mcp_server` with your actual project path.
 
-#### 6. Verify Connection
+#### 7. Verify Connection
 
 After configuration, you can verify the connection by:
 
