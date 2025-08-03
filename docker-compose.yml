@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  siyuan-mcp-server:
+    build: .
+    container_name: siyuan-mcp-server
+    environment:
+      - SIYUAN_HOST=${SIYUAN_HOST:-127.0.0.1}
+      - SIYUAN_PORT=${SIYUAN_PORT:-6806}
+      - SIYUAN_TOKEN=${SIYUAN_TOKEN}
+    restart: unless-stopped
+    volumes:
+      # 可选：挂载日志目录
+      - ./logs:/app/logs
+    networks:
+      - siyuan-network
+
+networks:
+  siyuan-network:
+    driver: bridge 

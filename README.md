@@ -59,6 +59,34 @@ docker logs -f siyuan-mcp-server
 docker stop siyuan-mcp-server && docker rm siyuan-mcp-server
 ```
 
+##### Docker Compose 方式（推荐）
+
+1. 配置环境变量
+```bash
+# 复制环境变量模板
+cp env.example .env
+
+# 编辑 .env 文件，填入你的思源笔记配置
+# SIYUAN_HOST=127.0.0.1
+# SIYUAN_PORT=6806
+# SIYUAN_TOKEN=你的思源API令牌
+```
+
+2. 启动服务
+```bash
+docker-compose up -d
+```
+
+3. 查看日志
+```bash
+docker-compose logs -f
+```
+
+4. 停止服务
+```bash
+docker-compose down
+```
+
 #### 4. 获取思源笔记 API 令牌
 
 1. **打开思源笔记**
